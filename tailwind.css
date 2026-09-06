@@ -5,11 +5,11 @@
 }
 
 .item-list-not-done {
-    @apply flex items-center gap-3 p-3 hover:bg-gray-100 rounded-md border-l-4 border-blue-500 transition-colors duration-200
+    @apply flex items-center gap-3 p-3 w-full hover:bg-gray-100 rounded-md border-l-4 border-blue-500 transition-colors duration-200
 }
 
 .item-list-done {
-    @apply flex items-center gap-3 p-3 bg-gray-50 rounded-md border-l-4 border-green-500
+    @apply flex items-center gap-3 p-3 w-full bg-gray-50 rounded-md border-l-4 border-green-500
 }
 
 .h2-center {

@@ -1,18 +1,18 @@
 use dioxus::{logger::tracing, prelude::*};
-use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::dao::sync_todos;
+use crate::dao::{TodoItem, create_table_if_exists, get_todos, insert_todo_item, sync_todos};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TodoItem {
-    pub uuid: String,
-    pub description: String,
-    pub done: bool,
-}
 
 #[component]
 pub fn Controls() -> Element {
+    spawn(async move {
+        match create_table_if_exists().await {
+            Ok(_) => tracing::info!("Tabela criada com sucesso!"),
+            Err(e) => tracing::error!("Erro ao criar tabela: {e}"),
+        }
+    });
+
     let mut lista = use_signal(|| Vec::<TodoItem>::new());
     let mut texto = use_signal(|| String::new());
     rsx! {
@@ -24,6 +24,7 @@ pub fn Controls() -> Element {
                     name: "username",
                     placeholder: "O que precisa ser feito?",
                     oninput: move |evt| texto.set(evt.value()),
+                    value: texto,
                     class: "unique-input-field",
                 }
                 div { class: "button-row-container",
@@ -36,7 +37,11 @@ pub fn Controls() -> Element {
                                 description: texto(),
                                 done: false,
                             };
-                            lista.push(item);
+
+                            spawn(async move {
+                                texto.clear();
+                                insert_todo_item(item).await.unwrap();
+                            });
                         },
                         "Salvar"
                     }
@@ -46,8 +51,11 @@ pub fn Controls() -> Element {
                         onclick: move |_| {
                             // Dispara chamada assíncrona para a server function.
                             spawn(async move {
-                                match sync_todos(lista()).await {
-                                    Ok(_) => tracing::info!("Banco de dados sincronizado com sucesso!"),
+                                match get_todos().await {
+                                    Ok(data) => {
+                                        lista.set(data);
+                                        tracing::info!("Banco de dados sincronizado com sucesso!");
+                                    }
                                     Err(err) => tracing::error!("Erro ao sincronizar: {:?}", err),
                                 }
                             });
@@ -64,13 +72,20 @@ pub fn Controls() -> Element {
 #[component]
 pub fn TodoList(mut lista_sinal: Signal<Vec<TodoItem>>) -> Element {
     rsx! {
-        div { class: "text-center py-8 text-gray-500",
-            ul {
+        div { class: "py-8 text-gray-500 max-w-md mx-auto w-full",
+            ul { class: "space-y-2 w-full",
                 for (index , item) in lista_sinal.iter().enumerate() {
                     li { class: if item.done { "item-list-done" } else { "item-list-not-done" },
-                        "{item.uuid} - {item.description}"
+
+                        // flex-1 faz o texto expandir e ocupar todo o espaço,
+                        // empurrando o checkbox para a extrema direita.
+                        // min-w-0 e truncate evitam que o texto seja cortado.
+                        span { class: "flex-1 min-w-0 truncate text-left",
+                            "{index} - {item.description}"
+                        }
+
                         input {
-                            class: "input-checkbox",
+                            class: "input-checkbox cursor-pointer flex-shrink-0",
                             r#type: "checkbox",
                             checked: item.done,
                             onchange: move |_| {
