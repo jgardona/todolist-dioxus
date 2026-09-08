@@ -63,6 +63,26 @@ pub async fn create_table_if_exists() -> Result<(), ServerFnError> {
 }
 
 #[server]
+pub async fn update_todo(item: TodoItem) -> Result<(), ServerFnError> {
+    let pool = get_dbpool().await?;
+    let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e))?;
+    sqlx::query(
+        "update todo_item
+        set description = $1,
+        done = $2
+        where uuid = $3
+        ",
+    )
+    .bind(&item.description)
+    .bind(&item.done)
+    .bind(&item.uuid)
+    .execute(&mut *tx).await.map_err(|e| ServerFnError::new(e))?;
+
+    tx.commit().await.map_err(|e| ServerFnError::new(e))?;
+    Ok(())
+}
+
+#[server]
 pub async fn get_todos() -> Result<Vec<TodoItem>, ServerFnError> {
     let pool = get_dbpool().await?;
 
@@ -72,27 +92,4 @@ pub async fn get_todos() -> Result<Vec<TodoItem>, ServerFnError> {
         .map_err(|e| ServerFnError::new(e))?;
 
     Ok(buffer)
-}
-
-#[server]
-pub async fn sync_todos(items: Vec<TodoItem>) -> Result<(), ServerFnError> {
-    // Inicia a transação para o upsert.
-    let pool = get_dbpool().await?;
-    let mut tx = pool.begin().await.map_err(|e| ServerFnError::new(e))?;
-
-    for item in items {
-        sqlx::query(
-            "INSERT OR REPLACE INTO todo_item (uuid, description, done) VALUES ($1, $2, $3)",
-        )
-        .bind(&item.uuid)
-        .bind(&item.description)
-        .bind(&item.done)
-        .execute(&mut *tx)
-        .await
-        .map_err(|e| ServerFnError::new(e))?;
-    }
-
-    // Efetiva a transação no SQLite.
-    tx.commit().await.map_err(|e| ServerFnError::new(e))?;
-    Ok(())
 }

@@ -13,7 +13,7 @@ sqlx = { version = "0.9", features = ["runtime-tokio", "sqlite"], optional = tru
 serde = { version = "1.0", features = ["derive"] }
 
 [features]
-default = ["web"]
+default = ["server", "web"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop"]
 mobile = ["dioxus/mobile"]

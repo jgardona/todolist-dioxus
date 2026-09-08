@@ -1,7 +1,7 @@
 use dioxus::{logger::tracing, prelude::*};
 use uuid::Uuid;
 
-use crate::dao::{TodoItem, create_table_if_exists, get_todos, insert_todo_item, sync_todos};
+use crate::dao::{TodoItem, create_table_if_exists, get_todos, insert_todo_item, update_todo};
 
 
 #[component]
@@ -92,9 +92,22 @@ pub fn TodoList(mut lista_sinal: Signal<Vec<TodoItem>>) -> Element {
                                 let mut lista = lista_sinal.write();
                                 if let Some(todo) = lista.get_mut(index) {
                                     todo.done = !todo.done;
+                                    let t = todo.clone();
+                                    spawn(async move {
+                                        match update_todo(t).await {
+                                            Ok(_) => tracing::debug!("O item foi modificado com sucesso"),
+                                            Err(e) => {
+                                                tracing::error!(
+                                                    "Ocorreu um erro ao tentar modificar o item: {:?}", e
+                                                )
+                                            }
+                                        };
+                                    });
                                 }
                             },
                         }
+
+                        button { class: "btn-action-delete", "Delete" }
                     }
                 }
             }
