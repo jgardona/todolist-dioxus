@@ -76,7 +76,9 @@ pub async fn update_todo(item: TodoItem) -> Result<(), ServerFnError> {
     .bind(&item.description)
     .bind(&item.done)
     .bind(&item.uuid)
-    .execute(&mut *tx).await.map_err(|e| ServerFnError::new(e))?;
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| ServerFnError::new(e))?;
 
     tx.commit().await.map_err(|e| ServerFnError::new(e))?;
     Ok(())
@@ -92,4 +94,15 @@ pub async fn get_todos() -> Result<Vec<TodoItem>, ServerFnError> {
         .map_err(|e| ServerFnError::new(e))?;
 
     Ok(buffer)
+}
+
+#[server]
+pub async fn delete_todo(item: TodoItem) -> Result<(), ServerFnError> {
+    let pool = get_dbpool().await?;
+    sqlx::query("delete from todo_item where uuid = $1")
+        .bind(&item.uuid)
+        .execute(&pool)
+        .await
+        .map_err(|e| ServerFnError::new(e))?;
+    Ok(())
 }

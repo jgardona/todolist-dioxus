@@ -1,7 +1,7 @@
 use dioxus::{logger::tracing, prelude::*};
 use uuid::Uuid;
 
-use crate::dao::{TodoItem, create_table_if_exists, get_todos, insert_todo_item, update_todo};
+use crate::dao::{TodoItem, create_table_if_exists, delete_todo, get_todos, insert_todo_item, update_todo};
 
 
 #[component]
@@ -107,7 +107,26 @@ pub fn TodoList(mut lista_sinal: Signal<Vec<TodoItem>>) -> Element {
                             },
                         }
 
-                        button { class: "btn-action-delete", "Delete" }
+                        button {
+                            class: "btn-action-delete",
+                            onclick: move |_| {
+                                let lista = lista_sinal();
+                                if let Some(todo) = lista.get(index) {
+                                    let t = todo.clone();
+                                    spawn(async move {
+                                        match delete_todo(t).await {
+                                            Ok(_) => tracing::debug!("O item foi excluído com sucesso"),
+                                            Err(e) => {
+                                                tracing::debug!(
+                                                    "Ocorreu um erro ao tentar excluir o item: {:?}", e
+                                                )
+                                            }
+                                        };
+                                    });
+                                }
+                            },
+                            "Delete"
+                        }
                     }
                 }
             }
