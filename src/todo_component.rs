@@ -1,8 +1,9 @@
 use dioxus::{logger::tracing, prelude::*};
 use uuid::Uuid;
 
-use crate::dao::{TodoItem, create_table_if_exists, delete_todo, get_todos, insert_todo_item, update_todo};
-
+use crate::dao::{
+    create_table_if_exists, delete_todo, get_todos, insert_todo_item, update_todo, TodoItem,
+};
 
 #[component]
 pub fn Controls() -> Element {
