@@ -42,6 +42,10 @@ pub fn Controls() -> Element {
                             spawn(async move {
                                 texto.clear();
                                 insert_todo_item(item).await.unwrap();
+                                if let Ok(data) = get_todos().await {
+                                    let mut lista = lista.write();
+                                    *lista = data;
+                                }
                             });
                         },
                         "Salvar"
@@ -123,6 +127,10 @@ pub fn TodoList(mut lista_sinal: Signal<Vec<TodoItem>>) -> Element {
                                                 )
                                             }
                                         };
+                                        if let Ok(data) = get_todos().await {
+                                            let mut lista = lista_sinal.write();
+                                            *lista = data;
+                                        }
                                     });
                                 }
                             },
