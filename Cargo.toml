@@ -18,3 +18,12 @@ web = ["dioxus/web"]
 desktop = ["dioxus/desktop"]
 mobile = ["dioxus/mobile"]
 server = ["dioxus/server", "dep:sqlx"]
+
+# [package.metadata.dioxus.web.wasm_bindgen]
+# # Forces Dioxus to pass the --keep-debug flag to wasm-bindgen
+# keep_debug = true
+
+# [profile.dev]
+# debug = true          # Generates DWARF info
+# opt-level = 0         # Prevents optimizing away variables
+# split-debuginfo = "packed" # Ensures symbols bundle inside the wasm binary
