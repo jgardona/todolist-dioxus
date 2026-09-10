@@ -11,6 +11,7 @@
     --color-red-500: oklch(63.7% 0.237 25.331);
     --color-red-600: oklch(57.7% 0.245 27.325);
     --color-red-700: oklch(50.5% 0.213 27.518);
+    --color-amber-700: oklch(55.5% 0.163 48.998);
     --color-green-500: oklch(72.3% 0.219 149.579);
     --color-blue-100: oklch(93.2% 0.032 255.585);
     --color-blue-200: oklch(88.2% 0.059 254.128);
@@ -215,6 +216,12 @@
   .mx-auto {
     margin-inline: auto;
   }
+  .flex {
+    display: flex;
+  }
+  .hidden {
+    display: none;
+  }
   .table {
     display: table;
   }
@@ -230,14 +237,23 @@
   .flex-1 {
     flex: 1;
   }
+  .flex-shrink {
+    flex-shrink: 1;
+  }
   .flex-shrink-0 {
     flex-shrink: 0;
+  }
+  .border-collapse {
+    border-collapse: collapse;
   }
   .transform {
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
   }
   .cursor-pointer {
     cursor: pointer;
+  }
+  .resize {
+    resize: both;
   }
   .space-y-2 {
     :where(& > :not(:last-child)) {
@@ -251,6 +267,10 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .border {
+    border-style: var(--tw-border-style);
+    border-width: 1px;
+  }
   .py-8 {
     padding-block: calc(var(--spacing) * 8);
   }
@@ -260,6 +280,16 @@
   .text-gray-500 {
     color: var(--color-gray-500);
   }
+  .underline {
+    text-decoration-line: underline;
+  }
+  .outline {
+    outline-style: var(--tw-outline-style);
+    outline-width: 1px;
+  }
+}
+.task-error {
+  color: var(--color-amber-700);
 }
 .input-checkbox {
   height: calc(var(--spacing) * 5);
@@ -493,6 +523,11 @@
   inherits: false;
   initial-value: solid;
 }
+@property --tw-outline-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
 @property --tw-duration {
   syntax: "*";
   inherits: false;
@@ -576,6 +611,7 @@
       --tw-skew-y: initial;
       --tw-space-y-reverse: 0;
       --tw-border-style: solid;
+      --tw-outline-style: solid;
       --tw-duration: initial;
       --tw-shadow: 0 0 #0000;
       --tw-shadow-color: initial;
