@@ -1,29 +1,28 @@
 [package]
 name = "todolist"
 version = "0.1.0"
-authors = ["jgardona <jcbritobr@gmail.com>"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-dioxus = { version = "0.7.1", features = ["fullstack"] }
-uuid = { version = "1.11", features = ["v4", "js"] }
-sqlx = { version = "0.9", features = ["runtime-tokio", "sqlite"], optional = true }
-serde = { version = "1.0", features = ["derive"] }
-
-[features]
-default = ["server", "web"]
-web = ["dioxus/web"]
-desktop = ["dioxus/desktop"]
-mobile = ["dioxus/mobile"]
-server = ["dioxus/server", "dep:sqlx"]
-
-# [package.metadata.dioxus.web.wasm_bindgen]
-# # Forces Dioxus to pass the --keep-debug flag to wasm-bindgen
-# keep_debug = true
+# Forces Dioxus to pass the --keep-debug flag to wasm-bindgen
+[package.metadata.dioxus.web.wasm_bindgen]
+keep_debug = true
 
 # [profile.dev]
 # debug = true          # Generates DWARF info
 # opt-level = 0         # Prevents optimizing away variables
 # split-debuginfo = "packed" # Ensures symbols bundle inside the wasm binary
+
+[dependencies]
+dioxus = { version = "0.7.1", features = ["fullstack"] }
+serde = { version = "1.0", features = ["derive"] }
+sqlx = { version = "0.9", features = ["runtime-tokio", "sqlite"], optional = true }
+uuid = { version = "1.11", features = ["js", "v4"] }
+
+[features]
+default = ["server", "web"]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile"]
+server = ["dep:sqlx", "dioxus/server"]
+web = ["dioxus/web"]

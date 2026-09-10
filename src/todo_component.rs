@@ -16,6 +16,7 @@ pub fn Controls() -> Element {
 
     let mut lista = use_signal(|| Vec::<TodoItem>::new());
     let mut texto = use_signal(|| String::new());
+    let mut is_hidden = use_signal(|| true);
     rsx! {
         div { class: "body-center",
             div { class: "custom-input-wrapper",
@@ -28,11 +29,20 @@ pub fn Controls() -> Element {
                     value: texto,
                     class: "unique-input-field",
                 }
+                div { class: "task-error", hidden: is_hidden(), "Uma tarefa não pode ser cadastrada sem uma descrição." }
                 div { class: "button-row-container",
                     button {
                         r#type: "button",
                         class: "btn-action-primary",
                         onclick: move |_| {
+
+                            if texto.is_empty() {
+                                is_hidden.set(false);
+                                return
+                            }
+
+                            is_hidden.set(true);
+                            
                             let item = TodoItem {
                                 uuid: Uuid::new_v4().to_string(),
                                 description: texto(),
