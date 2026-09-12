@@ -1,51 +1,36 @@
-# Development
+# todolist
 
-Your new bare-bones project includes minimal organization with a single `main.rs` file and a few assets.
+A simple todo-list app built with [Dioxus](https://dioxuslabs.com) 0.7 (fullstack). Todos are persisted to a local SQLite database via `sqlx`.
+
+![todolist screenshot](images/image.png)
+
+## Project layout
 
 ```
-project/
-├─ assets/ # Any assets that are used by the app should be placed here
-├─ src/
-│  ├─ main.rs # main.rs is the entry point to your application and currently contains all components for the app
-├─ Cargo.toml # The Cargo.toml file defines the dependencies and feature flags for your project
+src/
+├─ main.rs            # App entry point, mounts the root component
+├─ todo_component.rs   # UI: input form and todo list
+└─ dao.rs              # Server functions: create/read/update/delete todos, SQLite access
+assets/
+└─ tailwind.css         # Compiled Tailwind output (auto-generated, don't hand-edit)
+tailwind.css            # Tailwind source (@apply rules for custom classes)
 ```
 
-### Automatic Tailwind (Dioxus 0.7+)
-
-As of Dioxus 0.7, there no longer is a need to manually install tailwind. Simply `dx serve` and you're good to go!
-
-Automatic tailwind is supported by checking for a file called `tailwind.css` in your app's manifest directory (next to Cargo.toml). To customize the file, use the dioxus.toml:
-
-```toml
-[application]
-tailwind_input = "my.css"
-tailwind_output = "assets/out.css" # also customize the location of the out file!
-```
-
-### Tailwind Manual Install
-
-To use tailwind plugins or manually customize tailwind, you can can install the Tailwind CLI and use it directly.
-
-### Tailwind
-1. Install npm: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
-2. Install the Tailwind CSS CLI: https://tailwindcss.com/docs/installation/tailwind-cli
-3. Run the following command in the root of the project to start the Tailwind CSS compiler:
+## Running it
 
 ```bash
-npx @tailwindcss/cli -i ./input.css -o ./assets/tailwind.css --watch
+cargo install dioxus-cli
+dx serve
 ```
 
-### Serving Your App
+The `server` feature (enabled by default) pulls in `sqlx`/`tokio` and powers the server functions in `dao.rs`. On first run, `create_table_if_exists` creates `todos.db` in the working directory automatically — no manual migration step needed.
 
-Run the following command in the root of your project to start developing with the default platform:
+To run on a different platform:
 
-```bash
-dx serve --platform web
-```
-
-To run for a different platform, use the `--platform platform` flag. E.g.
 ```bash
 dx serve --platform desktop
 ```
 
-![alt text](images/image.png)
+## Tailwind
+
+As of Dioxus 0.7, Tailwind is compiled automatically — just `dx serve`/`dx build` and it picks up the root `tailwind.css` and regenerates `assets/tailwind.css`. Custom classes (`btn-action-primary`, `item-list-done`, etc.) live in the root `tailwind.css` using `@apply`; edit that file, not the generated one in `assets/`.

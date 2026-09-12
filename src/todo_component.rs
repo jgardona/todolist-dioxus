@@ -14,8 +14,8 @@ pub fn Controls() -> Element {
         }
     });
 
-    let mut lista = use_signal(|| Vec::<TodoItem>::new());
-    let mut texto = use_signal(|| String::new());
+    let mut lista = use_signal(Vec::<TodoItem>::new);
+    let mut texto = use_signal(String::new);
     let mut is_hidden = use_signal(|| true);
     rsx! {
         div { class: "body-center",
@@ -51,10 +51,16 @@ pub fn Controls() -> Element {
 
                             spawn(async move {
                                 texto.clear();
-                                insert_todo_item(item).await.unwrap();
-                                if let Ok(data) = get_todos().await {
-                                    let mut lista = lista.write();
-                                    *lista = data;
+                                match insert_todo_item(item).await {
+                                    Ok(_) => {
+                                        if let Ok(data) = get_todos().await {
+                                            let mut lista = lista.write();
+                                            *lista = data;
+                                        }
+                                    }
+                                    Err(e) => {
+                                        tracing::error!("Erro ao inserir a tarefa: {:?}", e)
+                                    }
                                 }
                             });
                         },
@@ -90,7 +96,9 @@ pub fn TodoList(mut lista_sinal: Signal<Vec<TodoItem>>) -> Element {
         div { class: "py-8 text-gray-500 max-w-md mx-auto w-full",
             ul { class: "space-y-2 w-full",
                 for (index , item) in lista_sinal.iter().enumerate() {
-                    li { class: if item.done { "item-list-done" } else { "item-list-not-done" },
+                    li {
+                        key: "{item.uuid}",
+                        class: if item.done { "item-list-done" } else { "item-list-not-done" },
 
                         // flex-1 faz o texto expandir e ocupar todo o espaço,
                         // empurrando o checkbox para a extrema direita.
@@ -104,17 +112,28 @@ pub fn TodoList(mut lista_sinal: Signal<Vec<TodoItem>>) -> Element {
                             r#type: "checkbox",
                             checked: item.done,
                             onchange: move |_| {
-                                let mut lista = lista_sinal.write();
-                                if let Some(todo) = lista.get_mut(index) {
-                                    todo.done = !todo.done;
-                                    let t = todo.clone();
+                                let toggled = {
+                                    let mut lista = lista_sinal.write();
+                                    lista.get_mut(index).map(|todo| {
+                                        let uuid = todo.uuid.clone();
+                                        let description = todo.description.clone();
+                                        let previous = todo.done;
+                                        todo.done = !previous;
+                                        (uuid, description, previous, todo.done)
+                                    })
+                                };
+                                if let Some((uuid, description, previous, new_done)) = toggled {
                                     spawn(async move {
-                                        match update_todo(t).await {
+                                        match update_todo(uuid.clone(), description, new_done).await {
                                             Ok(_) => tracing::debug!("O item foi modificado com sucesso"),
                                             Err(e) => {
                                                 tracing::error!(
                                                     "Ocorreu um erro ao tentar modificar o item: {:?}", e
-                                                )
+                                                );
+                                                let mut lista = lista_sinal.write();
+                                                if let Some(todo) = lista.iter_mut().find(|t| t.uuid == uuid) {
+                                                    todo.done = previous;
+                                                }
                                             }
                                         };
                                     });
@@ -127,12 +146,12 @@ pub fn TodoList(mut lista_sinal: Signal<Vec<TodoItem>>) -> Element {
                             onclick: move |_| {
                                 let lista = lista_sinal();
                                 if let Some(todo) = lista.get(index) {
-                                    let t = todo.clone();
+                                    let uuid = todo.uuid.clone();
                                     spawn(async move {
-                                        match delete_todo(t).await {
+                                        match delete_todo(uuid).await {
                                             Ok(_) => tracing::debug!("O item foi excluído com sucesso"),
                                             Err(e) => {
-                                                tracing::debug!(
+                                                tracing::error!(
                                                     "Ocorreu um erro ao tentar excluir o item: {:?}", e
                                                 )
                                             }
